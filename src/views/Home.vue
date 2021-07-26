@@ -111,11 +111,15 @@ export default {
     },
     // -------------------------------------------------
     async getUserInfo() {
+      this.userInfo = [];
       this.tokenObject.forEach(async (token) => {
         let contractToken = token.contractInstance;
-        let balance = await this.getUserBalance(contractToken);
         let decimals = await this.getUserDecimals(contractToken);
-        let totalSupply = await this.getUserTotalSupply(contractToken);
+        let balance = await this.getUserBalance(contractToken, decimals);
+        let totalSupply = await this.getUserTotalSupply(
+          contractToken,
+          decimals
+        );
         this.userInfo.push({
           name: token.name,
           img: token.img,
@@ -126,10 +130,11 @@ export default {
       });
     },
     // -------------------------------------------------
-    async getUserBalance(contractToken) {
+    async getUserBalance(contractToken, decimals) {
       try {
         const balance = await contractToken?.balanceOf(this.enterAddress);
-        return this.$ethers.utils.formatEther(balance.toString());
+        return this.$ethers.utils.formatUnits(balance.toString(), decimals);
+        // return this.$ethers.utils.formatEther(balance.toString());
       } catch (err) {
         console.log("Error getBalance:", err);
       }
@@ -138,16 +143,17 @@ export default {
     async getUserDecimals(contractToken) {
       try {
         const decimals = await contractToken?.decimals();
-        return this.$ethers.utils.formatUnits(decimals.toString(), "wei");
+        return decimals.toString();
       } catch (err) {
         console.log("Error getUserDecimals:", err);
       }
     },
     // -------------------------------------------------
-    async getUserTotalSupply(contractToken) {
+    async getUserTotalSupply(contractToken, decimals) {
       try {
         const totalSupply = await contractToken?.totalSupply();
-        return this.$ethers.utils.formatUnits(totalSupply.toString(), "ether");
+        return this.$ethers.utils.formatUnits(totalSupply.toString(), decimals);
+        // return this.$ethers.utils.formatUnits(totalSupply.toString(), "ether");
       } catch (err) {
         console.log("Error getUserTotalSupply:", err);
       }
