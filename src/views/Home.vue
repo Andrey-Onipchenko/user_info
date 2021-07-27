@@ -7,8 +7,11 @@
       </button>
       <template v-if="getAddress">
         <h3>Enter your address</h3>
-        <input type="text" v-model="enterAddress" />
+        <input type="text" v-model="enterAddress" ref="inputAddress" />
         <button @click="getUserInfo">getBalance</button>
+      </template>
+      <template>
+        <div v-if="error" class="error">{{ error }}</div>
       </template>
       <div class="">
         <div class="info" v-for="(info, inx) in userInfo" :key="inx">
@@ -20,6 +23,7 @@
           <div>
             <p>Balance:</p>
             <p>{{ info.balance }}</p>
+            <p>USD:{{ info.balanceUsd }}$</p>
           </div>
           <div>
             <p>Decimals:</p>
@@ -39,6 +43,7 @@
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import contractsData from "@/utils/contracs/userInfo.js";
 import detectEthereumProvider from "@metamask/detect-provider";
+import axios from "axios";
 export default {
   name: "Home",
   data() {
@@ -47,10 +52,12 @@ export default {
       tokenObject: [],
       userInfo: [],
       enterAddress: "",
+      idNames: [],
+      error: null,
     };
   },
   computed: {
-    ...mapGetters(["getState", "getAddress", "getSigner"]),
+    ...mapGetters(["getState", "getAddress", "getSigner", "getRatesList"]),
     btnText() {
       if (this.getAddress) {
         return `${this.getAddress.slice(0, 6)}...${this.getAddress.slice(-6)}`;
@@ -60,7 +67,12 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["setProvider", "setSigner", "setContractsObject"]),
+    ...mapMutations([
+      "setProvider",
+      "setSigner",
+      "setContractsObject",
+      "setRatesList",
+    ]),
     ...mapActions(["checkConnectAccountAction", "connectAccountAction"]),
     // -------------------------------------------------
     async checkProvider() {
@@ -98,6 +110,7 @@ export default {
     },
     // -------------------------------------------------
     async createContract(contract) {
+      this.idNames.push(contract.idName);
       const tokenInstance = await new this.$ethers.Contract(
         contract.address,
         JSON.stringify(contract.abi),
@@ -112,22 +125,41 @@ export default {
     // -------------------------------------------------
     async getUserInfo() {
       this.userInfo = [];
-      this.tokenObject.forEach(async (token) => {
-        let contractToken = token.contractInstance;
-        let decimals = await this.getUserDecimals(contractToken);
-        let balance = await this.getUserBalance(contractToken, decimals);
-        let totalSupply = await this.getUserTotalSupply(
-          contractToken,
-          decimals
-        );
-        this.userInfo.push({
-          name: token.name,
-          img: token.img,
-          balance: balance,
-          decimals: decimals,
-          totalSupply,
+      console.log(this.$refs.inputAddress.value);
+      if (this.$refs.inputAddress.value) {
+        this.error = null;
+        this.tokenObject.forEach(async (token) => {
+          let contractToken = token.contractInstance;
+          let decimals = await this.getUserDecimals(contractToken);
+          let balance = await this.getUserBalance(contractToken, decimals);
+          let balanceUsd = await this.getUserBalanceUsd(balance, token);
+          let totalSupply = await this.getUserTotalSupply(
+            contractToken,
+            decimals
+          );
+          this.userInfo.push({
+            name: token.name,
+            img: token.img,
+            balance: balance,
+            balanceUsd: balanceUsd,
+            decimals: decimals,
+            totalSupply,
+          });
         });
-      });
+      } else {
+        this.error = "Enter Address";
+      }
+    },
+    // -------------------------------------------------
+    async getUserBalanceUsd(balance, token) {
+      console.log(token);
+      try {
+        let rates = this.getRatesList[token.idName].usd;
+        let usd = balance * rates;
+        return usd.toFixed(2);
+      } catch (err) {
+        console.log("Error getBalance:", err);
+      }
     },
     // -------------------------------------------------
     async getUserBalance(contractToken, decimals) {
@@ -158,10 +190,19 @@ export default {
         console.log("Error getUserTotalSupply:", err);
       }
     },
+    async ratesList() {
+      let rates = this.idNames.join(",");
+      console.log(rates);
+      let response = await axios(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${rates}&vs_currencies=usd`
+      );
+      this.setRatesList(response.data);
+    },
   },
   async mounted() {
     await this.checkProvider();
-    this.createContractAll();
+    await this.createContractAll();
+    await this.ratesList();
   },
 };
 </script>
@@ -190,5 +231,6 @@ input {
     flex-basis: 0;
     flex-grow: 1;
   }
+
 }
 </style>

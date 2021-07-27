@@ -1,6 +1,7 @@
 export default [
   {
     name: "WETH",
+    idName: "weth",
     img: require("@/assets/img/Token_WETH.svg"),
     address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     abi: [
@@ -159,6 +160,7 @@ export default [
   },
   {
     name: "USDT",
+    idName: "tether",
     img: require("@/assets/img/Token_USDT.svg"),
     address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     abi: [
@@ -554,6 +556,7 @@ export default [
   },
   {
     name: "USDC",
+    idName: "usd-coin",
     img: require("@/assets/img/Token_USDC.svg"),
     address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
     abi: [
@@ -949,6 +952,7 @@ export default [
   },
   {
     name: "WBTC",
+    idName: "wrapped-bitcoin",
     img: require("@/assets/img/Token_WBTC.svg"),
     address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
     abi: [
@@ -1250,6 +1254,7 @@ export default [
   },
   {
     name: "DAI",
+    idName: "dai",
     img: require("@/assets/img/Token_DAI.svg"),
     address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
     abi: [
@@ -1588,6 +1593,7 @@ export default [
   },
   {
     name: "UNI",
+    idName: "unicorn-token",
     img: require("@/assets/img/Token_UNI.svg"),
     address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
     abi: [
@@ -2013,6 +2019,7 @@ export default [
   },
   {
     name: "LINK",
+    idName: "chainlink",
     img: require("@/assets/img/Token_LINK.svg"),
     address: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
     abi: [
